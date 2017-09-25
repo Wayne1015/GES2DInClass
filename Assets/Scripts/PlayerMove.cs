@@ -1,47 +1,78 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerMove : MonoBehaviour {
     [SerializeField]
+    float jumpStrength = 10;
+
+    [SerializeField]
     float movementspeed = 6.6f;
+
+    [SerializeField]
+    Transform GroundDetectPoint;
+
+    [SerializeField]
+    float GroundDetectRadius = 0.2f;
+
+    [SerializeField]
+    LayerMask whatCountsAsGrounds;
+
+
+    private bool isOnGround;
 
     //[SerializeField]
     Rigidbody2D myRigidBody;
 	// Use this for initialization
-	void Start () {
+	void Start ()
+    {
         Debug.Log("Called From Start.");
         //this code puts the player in the center
         //transform.position = new Vector3(0,0,0);
         myRigidBody = GetComponent<Rigidbody2D>();
-        
-
-        
 	}
 	
 	// Update is called once per frame
 	void Update ()
     {
-        
-        //programming for horizontal movement
-        float horizontalInput = Input.GetAxis("Horizontal");
-        Debug.Log("Horizontal Input " + horizontalInput);
-        //Changes the velocity of the gameobject 
-        myRigidBody.velocity = 
-            new Vector2(horizontalInput * movementspeed, myRigidBody.velocity.y);
-        //doesn't use the physics system rigidbody2D
-        //transform.Translate(0.1f * horizontalInput, 0 ,0);
+        UpdateIsOnGround();
+        Move();
+        Jump();
+    }
 
-        //code for jumping
-        if (Input.GetButtonDown("Jump"))
+    private void UpdateIsOnGround()
+    {
+       Collider2D[] groundObjects = Physics2D.OverlapCircleAll(
+            GroundDetectPoint.position, GroundDetectRadius, whatCountsAsGrounds);
+
+        isOnGround = groundObjects.Length > 0;
+    }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        isOnGround = true;
+    }
+
+    private void Jump()
+    {
+        if (Input.GetButtonDown("Jump") && isOnGround)
         {
-            //crappy jump logic
-            //don't use GetKey use GetAxis 
-            //if (Input.GetKey(KeyCode.D))
-            //{
-            //    transform.Translate(new Vector3(0.1f, 0));
-            //}
-            transform.Translate(new Vector3(0, 5, 0));
+            myRigidBody.velocity = new Vector2(myRigidBody.velocity.x, y: jumpStrength);
+            isOnGround = false;
         }
     }
+
+    private void Move()
+    {
+        //programming for horizontal movement
+        float horizontalInput = Input.GetAxis("Horizontal");
+        
+        //Changes the velocity of the gameobject 
+
+        //code for jumping
+        myRigidBody.velocity = new Vector2(horizontalInput * movementspeed, myRigidBody.velocity.y);
+    }
+
+
 }
